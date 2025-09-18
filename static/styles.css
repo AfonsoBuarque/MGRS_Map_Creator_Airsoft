@@ -664,37 +664,525 @@ button.danger:hover:not(:disabled) {
   }
 }
 
-/* Responsive design */
+/* Mobile Header */
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 1000;
+  padding: 0 16px;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+}
+
+.mobile-header h1 {
+  font-size: 18px;
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mobile-menu-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--border-color);
+}
+
+.mobile-menu-btn span {
+  width: 20px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-btn.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-btn.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+
+.mobile-overlay.show {
+  display: block;
+}
+
+/* Mobile Quick Actions */
+.mobile-quick-actions {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.quick-action-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.quick-action-btn:active {
+  transform: scale(0.95);
+}
+
+.desktop-only {
+  display: block;
+}
+
+/* Enhanced touch targets for mobile */
 @media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+  }
+  
+  .desktop-only {
+    display: none;
+  }
+  
+  .mobile-quick-actions {
+    display: flex;
+  }
+  
   .app {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: 1fr;
+    padding-top: 60px;
+    position: relative;
   }
   
   .panel {
-    max-height: 40vh;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
+    position: fixed;
+    top: 60px;
+    left: -100%;
+    width: 85%;
+    max-width: 400px;
+    height: calc(100vh - 60px);
+    border-right: 1px solid var(--border-color);
+    border-bottom: none;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    box-shadow: var(--shadow-lg);
   }
   
+  .panel.show {
+    left: 0;
+  }
+  
+  #map {
+    width: 100%;
+    height: calc(100vh - 60px);
+  }
+  
+  /* Enhanced form controls for touch */
+  input[type="text"], 
+  input[type="search"], 
+  select {
+    min-height: 48px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px 16px;
+  }
+  
+  input[type="color"] {
+    min-height: 48px;
+  }
+  
+  button {
+    min-height: 48px;
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+  
+  /* Improved icon selector for touch */
+  .icon-selector {
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 12px;
+  }
+  
+  .icon-option {
+    min-height: 80px;
+    padding: 16px 12px;
+  }
+  
+  .icon-preview {
+    font-size: 24px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  /* Better spacing for mobile */
+  .panel {
+    padding: 16px;
+  }
+  
+  details {
+    margin: 12px 0;
+  }
+  
+  summary {
+    padding: 16px;
+    font-size: 16px;
+  }
+  
+  details > div {
+    padding: 16px;
+  }
+  
+  /* Export buttons stack vertically */
   .export {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   
   .action-buttons {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   
+  /* Modal improvements for mobile */
   .modal-content {
     width: 95%;
-    margin: 20px;
+    max-width: none;
+    margin: 10px;
+    max-height: 95vh;
+  }
+  
+  .modal-header {
+    padding: 16px 20px;
+  }
+  
+  .modal-header h2 {
+    font-size: 20px;
+  }
+  
+  .modal-body {
+    padding: 20px;
+    gap: 20px;
   }
   
   .modal-footer {
-    flex-direction: column;
+    flex-direction: column-reverse;
+    gap: 12px;
+    padding: 16px 20px;
   }
   
   .modal-footer button {
     width: 100%;
+    min-height: 48px;
+  }
+  
+  /* Improved row layout for mobile */
+  .row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  /* Better legend spacing */
+  .legend-item {
+    padding: 12px 0;
+    font-size: 16px;
+  }
+  
+  .swatch {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Improved search controls */
+  .search-controls {
+    gap: 12px;
+  }
+  
+  /* Better session controls */
+  .session-controls {
+    gap: 12px;
+  }
+  
+  /* Improved file input */
+  .file-input-label {
+    padding: 16px;
+    font-size: 16px;
+    min-height: 48px;
+  }
+  
+  /* Better notification positioning */
+  .notifications-container {
+    top: 70px;
+    right: 10px;
+    left: 10px;
+  }
+  
+  .notification {
+    max-width: none;
+    font-size: 16px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .mobile-header h1 {
+    font-size: 16px;
+  }
+  
+  .panel {
+    width: 90%;
+  }
+  
+  .quick-action-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+  
+  .mobile-quick-actions {
+    bottom: 16px;
+    right: 16px;
+    gap: 10px;
+  }
+  
+  .icon-selector {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .modal-content {
+    width: 98%;
+    margin: 5px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .panel {
+    width: 60%;
+    max-width: 350px;
+  }
+  
+  .mobile-quick-actions {
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .quick-action-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* High DPI screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .pin, .emoji-pin {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .quick-action-btn {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 768px) {
+  /* Prevent text selection on touch */
+  .mobile-header, .mobile-quick-actions, .panel summary {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Improve touch scrolling */
+  .panel {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better focus states for accessibility */
+  input:focus, button:focus, select:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+  
+  /* Improve leaflet controls for mobile */
+  .leaflet-control-zoom {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  
+  .leaflet-control-zoom a {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 18px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: none;
+  }
+  
+  .leaflet-control-zoom a:hover {
+    background: var(--bg-tertiary);
+  }
+  
+  .leaflet-control-layers {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+  
+  .leaflet-control-layers-toggle {
+    width: 40px;
+    height: 40px;
+    background: var(--bg-primary);
+  }
+  
+  /* Improve popup appearance on mobile */
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+  }
+  
+  .leaflet-popup-content {
+    margin: 0;
+    font-family: inherit;
+  }
+  
+  .marker-popup {
+    padding: 16px;
+  }
+  
+  .marker-popup h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    color: var(--text-primary);
+  }
+  
+  .marker-popup p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  
+  .popup-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+  }
+  
+  .popup-actions button {
+    flex: 1;
+    min-height: 40px;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  
+  /* Improve theme switch for mobile */
+  .theme-switch {
+    width: 44px;
+    height: 28px;
+  }
+  
+  .slider {
+    border-radius: 28px;
+    font-size: 14px;
+  }
+  
+  /* Better safe area handling for devices with notches */
+  .mobile-header {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-top: env(safe-area-inset-top);
+    height: calc(60px + env(safe-area-inset-top));
+  }
+  
+  .app {
+    padding-top: calc(60px + env(safe-area-inset-top));
+  }
+  
+  .panel {
+    top: calc(60px + env(safe-area-inset-top));
+    height: calc(100vh - 60px - env(safe-area-inset-top));
+  }
+  
+  #map {
+    height: calc(100vh - 60px - env(safe-area-inset-top));
+  }
+  
+  .mobile-quick-actions {
+    bottom: max(20px, env(safe-area-inset-bottom));
+    right: max(20px, env(safe-area-inset-right));
+  }
+}
+
+/* Dark mode improvements for mobile */
+@media (max-width: 768px) {
+  [data-theme="dark"] .leaflet-control-zoom a {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+  
+  [data-theme="dark"] .leaflet-control-layers {
+    background: var(--bg-secondary);
+  }
+  
+  [data-theme="dark"] .leaflet-popup-content-wrapper {
+    background: var(--bg-primary);
+    color: var(--text-primary);
   }
 }

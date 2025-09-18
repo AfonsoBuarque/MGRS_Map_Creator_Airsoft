@@ -9,12 +9,29 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   </head>
   <body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+      <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <h1>Task Force MGRS</h1>
+      <label class="theme-switch">
+        <input type="checkbox" id="theme-toggle">
+        <span class="slider">🌙</span>
+      </label>
+    </header>
+
     <div class="app">
-      <aside class="panel">
-        <div class="header">
+      <!-- Mobile Overlay -->
+      <div class="mobile-overlay" id="mobile-overlay"></div>
+      
+      <aside class="panel" id="panel">
+        <div class="header desktop-only">
           <h1>Task Force — Marcadores MGRS</h1>
           <label class="theme-switch">
-            <input type="checkbox" id="theme-toggle">
+            <input type="checkbox" id="theme-toggle-desktop">
             <span class="slider">🌙</span>
           </label>
         </div>
@@ -145,6 +162,22 @@
       </aside>
 
       <main id="map"></main>
+      
+      <!-- Mobile Quick Actions -->
+      <div class="mobile-quick-actions">
+        <button class="quick-action-btn" id="mobile-add-btn" title="Adicionar Ponto">
+          <span>➕</span>
+        </button>
+        <button class="quick-action-btn" id="mobile-search-btn" title="Buscar">
+          <span>🔍</span>
+        </button>
+        <button class="quick-action-btn" id="mobile-export-btn" title="Exportar">
+          <span>📤</span>
+        </button>
+        <button class="quick-action-btn" id="mobile-center-btn" title="Centralizar Mapa">
+          <span>🎯</span>
+        </button>
+      </div>
     </div>
 
     <!-- Modal de Edição -->

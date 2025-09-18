@@ -1,5 +1,16 @@
-// Leaflet map
-const map = L.map('map').setView([-23.55, -46.63], 12); // São Paulo default
+// Leaflet map with mobile-optimized settings
+const map = L.map('map', {
+  tap: true,
+  tapTolerance: 15,
+  touchZoom: true,
+  bounceAtZoomLimits: false,
+  zoomControl: false // We'll add custom zoom controls for mobile
+}).setView([-23.55, -46.63], 12); // São Paulo default
+
+// Add zoom control in better position for mobile
+L.control.zoom({
+  position: 'bottomleft'
+}).addTo(map);
 
 // Multiple tile layer options
 const tileLayers = {
@@ -227,6 +238,9 @@ async function addPoint({name, mgrs, color, category, iconType}) {
       </div>
     `);
   
+  // Enhance marker for mobile
+  enhanceMarkerForMobile(marker);
+  
   // Store icon type in marker for later reference
   marker._iconType = iconType || 'circle';
   
@@ -366,6 +380,9 @@ function addPointFromData(point) {
         </div>
       </div>
     `);
+  
+  // Enhance marker for mobile
+  enhanceMarkerForMobile(marker);
   
   // Store icon type in marker
   marker._iconType = iconType;
@@ -766,9 +783,309 @@ document.getElementById('export-kml').addEventListener('click', async () => {
   }
 });
 
+// Mobile functionality
+function initMobile() {
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const panel = document.getElementById('panel');
+  const overlay = document.getElementById('mobile-overlay');
+  
+  // Mobile menu toggle
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', () => {
+      const isOpen = panel.classList.contains('show');
+      if (isOpen) {
+        closeMobilePanel();
+      } else {
+        openMobilePanel();
+      }
+    });
+  }
+  
+  // Overlay click to close
+  if (overlay) {
+    overlay.addEventListener('click', closeMobilePanel);
+  }
+  
+  // Mobile quick actions
+  setupMobileQuickActions();
+  
+  // Sync theme toggles
+  syncThemeToggles();
+  
+  // Handle orientation changes
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+  });
+  
+  // Handle resize for responsive behavior
+  window.addEventListener('resize', () => {
+    map.invalidateSize();
+  });
+}
+
+function openMobilePanel() {
+  const panel = document.getElementById('panel');
+  const overlay = document.getElementById('mobile-overlay');
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  
+  panel.classList.add('show');
+  overlay.classList.add('show');
+  menuBtn.classList.add('active');
+  
+  // Prevent body scroll when panel is open
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMobilePanel() {
+  const panel = document.getElementById('panel');
+  const overlay = document.getElementById('mobile-overlay');
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  
+  panel.classList.remove('show');
+  overlay.classList.remove('show');
+  menuBtn.classList.remove('active');
+  
+  // Restore body scroll
+  document.body.style.overflow = '';
+}
+
+function setupMobileQuickActions() {
+  const addBtn = document.getElementById('mobile-add-btn');
+  const searchBtn = document.getElementById('mobile-search-btn');
+  const exportBtn = document.getElementById('mobile-export-btn');
+  const centerBtn = document.getElementById('mobile-center-btn');
+  
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      openMobilePanel();
+      // Focus on the add point form
+      setTimeout(() => {
+        const addSection = document.querySelector('.form-section');
+        if (addSection && !addSection.open) {
+          addSection.open = true;
+        }
+        const nameInput = document.getElementById('name');
+        if (nameInput) nameInput.focus();
+      }, 300);
+    });
+  }
+  
+  if (searchBtn) {
+    searchBtn.addEventListener('click', () => {
+      openMobilePanel();
+      // Focus on search section
+      setTimeout(() => {
+        const searchSection = document.querySelector('.search-section');
+        if (searchSection && !searchSection.open) {
+          searchSection.open = true;
+        }
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.focus();
+      }, 300);
+    });
+  }
+  
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      showMobileExportMenu();
+    });
+  }
+  
+  if (centerBtn) {
+    centerBtn.addEventListener('click', () => {
+      if (markers.length > 0) {
+        fitBoundsToMarkers();
+        showNotification('Mapa centralizado nos pontos', 'info');
+      } else {
+        showNotification('Nenhum ponto para centralizar', 'warning');
+      }
+    });
+  }
+}
+
+function showMobileExportMenu() {
+  const options = [
+    { text: '📍 Exportar GeoJSON', action: () => document.getElementById('export-geojson').click() },
+    { text: '📊 Exportar CSV', action: () => document.getElementById('export-csv').click() },
+    { text: '🗺️ Exportar KML', action: () => document.getElementById('export-kml').click() }
+  ];
+  
+  showMobileActionSheet('Exportar Dados', options);
+}
+
+function showMobileActionSheet(title, options) {
+  // Create action sheet modal
+  const modal = document.createElement('div');
+  modal.className = 'mobile-action-sheet';
+  modal.innerHTML = `
+    <div class="action-sheet-content">
+      <div class="action-sheet-header">
+        <h3>${title}</h3>
+        <button class="action-sheet-close">&times;</button>
+      </div>
+      <div class="action-sheet-options">
+        ${options.map((option, index) => 
+          `<button class="action-sheet-option" data-index="${index}">${option.text}</button>`
+        ).join('')}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Add styles if not already added
+  if (!document.querySelector('#mobile-action-sheet-styles')) {
+    const styles = document.createElement('style');
+    styles.id = 'mobile-action-sheet-styles';
+    styles.textContent = `
+      .mobile-action-sheet {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 10001;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+      }
+      
+      .action-sheet-content {
+        background: var(--bg-primary);
+        border-radius: 16px 16px 0 0;
+        width: 100%;
+        max-width: 500px;
+        animation: slideUp 0.3s ease;
+        border: 1px solid var(--border-color);
+      }
+      
+      .action-sheet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      
+      .action-sheet-header h3 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--text-primary);
+      }
+      
+      .action-sheet-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+      }
+      
+      .action-sheet-close:hover {
+        background: var(--border-color);
+      }
+      
+      .action-sheet-options {
+        padding: 10px;
+      }
+      
+      .action-sheet-option {
+        width: 100%;
+        padding: 16px 20px;
+        border: none;
+        background: none;
+        text-align: left;
+        font-size: 16px;
+        color: var(--text-primary);
+        border-radius: 8px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+      
+      .action-sheet-option:hover {
+        background: var(--bg-tertiary);
+      }
+      
+      .action-sheet-option:last-child {
+        margin-bottom: 0;
+      }
+    `;
+    document.head.appendChild(styles);
+  }
+  
+  // Event listeners
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeActionSheet();
+    }
+  });
+  
+  modal.querySelector('.action-sheet-close').addEventListener('click', closeActionSheet);
+  
+  modal.querySelectorAll('.action-sheet-option').forEach((btn, index) => {
+    btn.addEventListener('click', () => {
+      options[index].action();
+      closeActionSheet();
+    });
+  });
+  
+  function closeActionSheet() {
+    modal.style.animation = 'fadeOut 0.3s ease forwards';
+    setTimeout(() => {
+      document.body.removeChild(modal);
+    }, 300);
+  }
+}
+
+function syncThemeToggles() {
+  const mobileToggle = document.getElementById('theme-toggle');
+  const desktopToggle = document.getElementById('theme-toggle-desktop');
+  
+  if (mobileToggle && desktopToggle) {
+    mobileToggle.addEventListener('change', (e) => {
+      desktopToggle.checked = e.target.checked;
+      setTheme(e.target.checked);
+    });
+    
+    desktopToggle.addEventListener('change', (e) => {
+      mobileToggle.checked = e.target.checked;
+      setTheme(e.target.checked);
+    });
+  }
+}
+
+// Enhanced touch handling for markers
+function enhanceMarkerForMobile(marker) {
+  // Add touch-friendly popup behavior
+  marker.on('click', function(e) {
+    // Prevent map click when clicking marker on mobile
+    L.DomEvent.stopPropagation(e);
+    
+    // Close mobile panel if open
+    if (window.innerWidth <= 768) {
+      closeMobilePanel();
+    }
+  });
+  
+  return marker;
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
   initTheme();
+  initMobile();
   updateSessionsList();
   updateUndoRedoButtons();
   
