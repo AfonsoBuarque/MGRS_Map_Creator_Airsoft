@@ -1,0 +1,8 @@
+name,mgrs,category,latitude,longitude,color,iconType
+"Parte Alpha","23KKP4014597230","Parte",-23.550520,-46.633308,"#ff3b30","target"
+"Parte Bravo","23KKP4114597330","Parte",-23.540520,-46.623308,"#ff3b30","target"
+"Base Principal","23KKP4214597430","Base",-23.530520,-46.613308,"#34c759","base"
+"Posto de Observação","23KKP4314597530","Observação",-23.520520,-46.603308,"#007aff","observation"
+"Antígeno Norte","23KKP4414597630","Antígeno",-23.510520,-46.593308,"#ff9500","enemy"
+"Antígeno Sul","23KKP4514597730","Antígeno",-23.500520,-46.583308,"#ff9500","enemy"
+"Ponto de Extração","23KKP4614597830","Extração",-23.490520,-46.573308,"#5856d6","extraction"

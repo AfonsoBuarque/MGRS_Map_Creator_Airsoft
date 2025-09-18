@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Mapa MGRS → WGS84 | Task Force</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="panel">
+        <div class="header">
+          <h1>Task Force — Marcadores MGRS</h1>
+          <label class="theme-switch">
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider">🌙</span>
+          </label>
+        </div>
+        <p>Adicione quantos pontos quiser. O servidor Python converte MGRS → lat/lon.</p>
+
+        <!-- Search and Filter -->
+        <details class="search-section">
+          <summary>🔍 Buscar e Filtrar</summary>
+          <div class="search-controls">
+            <input type="text" id="search-input" placeholder="Buscar por nome...">
+            <select id="category-filter">
+              <option value="">Todas as categorias</option>
+            </select>
+          </div>
+        </details>
+
+        <!-- Actions -->
+        <details class="actions-section">
+          <summary>⚡ Ações Rápidas</summary>
+          <div class="action-buttons">
+            <button id="undo-btn" title="Desfazer (Ctrl+Z)">↶ Desfazer</button>
+            <button id="redo-btn" title="Refazer (Ctrl+Y)">↷ Refazer</button>
+            <button id="clear-all-btn" class="danger">🗑️ Limpar Tudo</button>
+          </div>
+        </details>
+
+        <!-- Add Point Form -->
+        <details open class="form-section">
+          <summary>➕ Adicionar Ponto</summary>
+          <form id="point-form">
+            <label>Nome
+              <input type="text" id="name" placeholder="Ex.: Parte 1" required>
+            </label>
+            <label>MGRS
+              <input type="text" id="mgrs" placeholder="Ex.: 23KKP4014597230" required>
+              <small>Formato: 23KKP4014597230</small>
+            </label>
+            <div class="row">
+              <label class="half">Categoria
+                <input type="text" id="category" placeholder="Parte / Antígeno / Base / ...">
+              </label>
+              <label class="half">Cor do ícone
+                <input type="color" id="color" value="#ff3b30">
+              </label>
+            </div>
+            <label>Ícone
+              <div class="icon-selector">
+                <div class="icon-option active" data-icon="circle" title="Círculo padrão">
+                  <div class="icon-preview circle-icon"></div>
+                  <span>Padrão</span>
+                </div>
+                <div class="icon-option" data-icon="target" title="Alvo/Objetivo">
+                  <div class="icon-preview">🎯</div>
+                  <span>Alvo</span>
+                </div>
+                <div class="icon-option" data-icon="base" title="Base/Acampamento">
+                  <div class="icon-preview">🏕️</div>
+                  <span>Base</span>
+                </div>
+                <div class="icon-option" data-icon="enemy" title="Inimigo/Antígeno">
+                  <div class="icon-preview">⚠️</div>
+                  <span>Inimigo</span>
+                </div>
+                <div class="icon-option" data-icon="observation" title="Posto de Observação">
+                  <div class="icon-preview">👁️</div>
+                  <span>Observação</span>
+                </div>
+                <div class="icon-option" data-icon="extraction" title="Ponto de Extração">
+                  <div class="icon-preview">🚁</div>
+                  <span>Extração</span>
+                </div>
+                <div class="icon-option" data-icon="medical" title="Posto Médico">
+                  <div class="icon-preview">🏥</div>
+                  <span>Médico</span>
+                </div>
+                <div class="icon-option" data-icon="supply" title="Suprimentos">
+                  <div class="icon-preview">📦</div>
+                  <span>Suprimentos</span>
+                </div>
+                <div class="icon-option" data-icon="checkpoint" title="Checkpoint">
+                  <div class="icon-preview">🚧</div>
+                  <span>Checkpoint</span>
+                </div>
+                <div class="icon-option" data-icon="sniper" title="Posição de Sniper">
+                  <div class="icon-preview">🔭</div>
+                  <span>Sniper</span>
+                </div>
+              </div>
+            </label>
+            <button type="submit">Adicionar ponto</button>
+          </form>
+        </details>
+
+        <!-- Legend -->
+        <details open class="legend-section">
+          <summary>🏷️ Legenda</summary>
+          <div id="legend"></div>
+        </details>
+
+        <!-- Import/Export -->
+        <details class="import-export-section">
+          <summary>📁 Importar/Exportar</summary>
+          <div class="import-section">
+            <label for="file-input" class="file-input-label">
+              📤 Importar Arquivo
+              <input type="file" id="file-input" accept=".csv,.json,.geojson" hidden>
+            </label>
+            <small>Suporta: CSV, GeoJSON</small>
+          </div>
+          <div class="export">
+            <button id="export-geojson">📍 GeoJSON</button>
+            <button id="export-csv">📊 CSV</button>
+            <button id="export-kml">🗺️ KML</button>
+          </div>
+        </details>
+
+        <!-- Session Management -->
+        <details class="session-section">
+          <summary>💾 Gerenciar Sessões</summary>
+          <div class="session-controls">
+            <button id="save-session-btn">💾 Salvar Sessão</button>
+            <select id="sessions-list">
+              <option value="">Carregar sessão...</option>
+            </select>
+            <small>Ctrl+S para salvar rapidamente</small>
+          </div>
+        </details>
+      </aside>
+
+      <main id="map"></main>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div id="edit-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>✏️ Editar Ponto</h2>
+          <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form id="edit-form" class="modal-body">
+          <label>Nome
+            <input type="text" id="edit-name" required>
+          </label>
+          <label>MGRS
+            <input type="text" id="edit-mgrs" required>
+            <small>Formato: 23KKP4014597230</small>
+          </label>
+          <div class="row">
+            <label class="half">Categoria
+              <input type="text" id="edit-category">
+            </label>
+            <label class="half">Cor do ícone
+              <input type="color" id="edit-color">
+            </label>
+          </div>
+          <label>Ícone
+            <div class="icon-selector" id="edit-icon-selector">
+              <div class="icon-option active" data-icon="circle" title="Círculo padrão">
+                <div class="icon-preview circle-icon"></div>
+                <span>Padrão</span>
+              </div>
+              <div class="icon-option" data-icon="target" title="Alvo/Objetivo">
+                <div class="icon-preview">🎯</div>
+                <span>Alvo</span>
+              </div>
+              <div class="icon-option" data-icon="base" title="Base/Acampamento">
+                <div class="icon-preview">🏕️</div>
+                <span>Base</span>
+              </div>
+              <div class="icon-option" data-icon="enemy" title="Inimigo/Antígeno">
+                <div class="icon-preview">⚠️</div>
+                <span>Inimigo</span>
+              </div>
+              <div class="icon-option" data-icon="observation" title="Posto de Observação">
+                <div class="icon-preview">👁️</div>
+                <span>Observação</span>
+              </div>
+              <div class="icon-option" data-icon="extraction" title="Ponto de Extração">
+                <div class="icon-preview">🚁</div>
+                <span>Extração</span>
+              </div>
+              <div class="icon-option" data-icon="medical" title="Posto Médico">
+                <div class="icon-preview">🏥</div>
+                <span>Médico</span>
+              </div>
+              <div class="icon-option" data-icon="supply" title="Suprimentos">
+                <div class="icon-preview">📦</div>
+                <span>Suprimentos</span>
+              </div>
+              <div class="icon-option" data-icon="checkpoint" title="Checkpoint">
+                <div class="icon-preview">🚧</div>
+                <span>Checkpoint</span>
+              </div>
+              <div class="icon-option" data-icon="sniper" title="Posição de Sniper">
+                <div class="icon-preview">🔭</div>
+                <span>Sniper</span>
+              </div>
+            </div>
+          </label>
+        </form>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancelar</button>
+          <button type="button" class="btn-primary" onclick="saveEditedMarker()">Salvar Alterações</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
