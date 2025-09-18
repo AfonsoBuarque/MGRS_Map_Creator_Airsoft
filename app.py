@@ -298,6 +298,12 @@ def api_info():
     })
 
 if __name__ == "__main__":
+    import os
     logger.info("Starting Task Force MGRS Mapper v2.0.0")
     logger.info("Enhanced features: validation, theming, session management, import/export")
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    
+    # Get port from environment variable (Railway sets this automatically)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_ENV") == "development"
+    
+    app.run(host="0.0.0.0", port=port, debug=debug)
